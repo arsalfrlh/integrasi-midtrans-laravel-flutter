@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:payment/pages/bank_page.dart';
+import 'package:payment/pages/cstore_page.dart';
 import 'package:payment/pages/gopay_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -41,11 +42,24 @@ class _HomePageState extends State<HomePage> {
                 },
                 style: ElevatedButton.styleFrom(
                     elevation: 0,
-                    foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 48),
                     shape: const StadiumBorder(),
-                    backgroundColor: const Color(0xFFFE9901)),
+                    backgroundColor: const Color(0xFF00BF6D),
+                    foregroundColor: Colors.white,),
                 child: const Text("Payment Gopay QR"),
+              ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CstorePage()));
+                },
+                style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    minimumSize: const Size(double.infinity, 48),
+                    shape: const StadiumBorder(),
+                    backgroundColor: const Color(0xFF00BF6D),
+                    foregroundColor: Colors.white,),
+                child: const Text("Payment Cstore"),
               ),
               const Spacer(flex: 2),
             ],

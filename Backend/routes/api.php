@@ -12,3 +12,4 @@ Route::post('/payment',[PaymentApiController::class,'createPayment']);
 Route::post('/payment/bank',[PaymentApiController::class,'paymentBank']);
 Route::post('/payment/gopay',[PaymentApiController::class,'paymentGopay']);
 Route::post('/payment/status/gopay',[PaymentApiController::class,'statusGopay']);
+Route::post('/payment/cstore',[PaymentApiController::class,'paymentCstore']);

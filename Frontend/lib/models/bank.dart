@@ -1,10 +1,10 @@
 class Bank {
   final String orderID;
   final String bankPayment;
-  final String vaNumber;
+  final int vaNumber;
   final String total;
-  final String waktuTransaksi;
-  final String Expired;
+  final DateTime waktuTransaksi;
+  final DateTime Expired;
 
   Bank({required this.orderID, required this.bankPayment, required this.vaNumber, required this.total, required this.waktuTransaksi, required this.Expired});
   // factory Bank.fromJson(Map<String, dynamic> json) {

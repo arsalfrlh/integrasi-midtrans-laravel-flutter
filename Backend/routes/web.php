@@ -13,3 +13,5 @@ Route::get('/payment/bank',[PaymentController::class,'createBank']);
 Route::post('/payment/bank/proses',[PaymentController::class,'paymentBank']);
 Route::get('/payment/gopay',[PaymentController::class,'createGopay']);
 Route::post('/payment/gopay/proses',[PaymentController::class,'paymentGopay']);
+Route::get('/payment/cstore',[PaymentController::class,'createCstore']);
+Route::post('/payment/cstore/proses',[PaymentController::class,'paymentCstore']);

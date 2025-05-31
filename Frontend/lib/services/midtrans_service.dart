@@ -31,4 +31,11 @@ class MidtransService {
     body: json.encode({'status': status}));
     return json.decode(response.body);
   }
+
+  Future<Map<String, dynamic>> paymentCstore(String name, String email, int total, String store, String? message)async{
+    final response = await http.post(Uri.parse('$baseUrl/payment/cstore'),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({'name': name, 'email': email, 'gross_amount': total, 'payment_type': 'cstore', 'store': store, 'message': message}));
+    return json.decode(response.body);
+  }
 }

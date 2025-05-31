@@ -137,4 +137,42 @@ class PaymentController extends Controller
     }
     }
 
+    //belum bikin blade & flutter
+    public function createCstore(){
+        return view('main.cstore');
+    }
+
+    public function paymentCstore(Request $request){
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required',
+            'payment_type' => 'required',
+            'gross_amount' => 'required',
+            'store' => 'required',
+        ]);
+
+        $serverKey = config('midtrans.server_key');
+        try{
+            $response = Http::withBasicAuth($serverKey, '')->post('https://api.sandbox.midtrans.com/v2/charge',[
+                'payment_type' => $request->payment_type,
+                'transaction_details' => [
+                    'order_id' => 'ORDER-'.uniqid(),
+                    'gross_amount' => $request->gross_amount
+                ],
+                'cstore' => [
+                    'store' => $request->store,
+                    'message' => $request->message
+                ],
+                'customer_details' => [
+                'first_name' => $request->name,
+                'email' => $request->email,
+                ],
+            ]);
+
+            $data = $response->json();
+            return view('payment.cstore',['payment' => $data]);
+        }catch(Exception $e){
+            dd($e->getMessage());
+        }
+    }
 }

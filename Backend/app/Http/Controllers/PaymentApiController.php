@@ -132,4 +132,37 @@ class PaymentApiController extends Controller
             return response()->json(['message' => $e->getMessage(), 'success' => false, 'data' => null]);
         }
     }
+
+    public function paymentCstore(Request $request){
+        $validator = Validator::make($request->all(),[
+            'name' => 'required',
+            'email' => 'required',
+            'gross_amount' => 'required',
+            'payment_type' => 'required',
+            'store' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['message' => 'Ada kesalahan', 'success' => false, 'data' => $validator->errors()->all()]);
+        }
+
+        try{
+            $serverKey = config('midtrans.server_key');
+            $response = Http::withBasicAuth($serverKey, '')->post('https://api.sandbox.midtrans.com/v2/charge',[
+                'payment_type' => $request->payment_type,
+                'transaction_details' => [
+                    'order_id' => 'ORDER-'.uniqid(),
+                    'gross_amount' => $request->gross_amount,
+                ],
+                'cstore' => [
+                    'store' => $request->store,
+                    'message' => $request->message,
+                ],
+            ]);
+            $data = $response->json();
+            return response()->json(['message' => 'Pembayaran berhasil, Silahkan lakukan pembayaran', 'success' => true, 'data' => $data]);
+        }catch(Exception $e){
+            return response()->json(['message' => $e->getMessage(), 'success' => false, 'data' => null]);
+        }
+    }
 }

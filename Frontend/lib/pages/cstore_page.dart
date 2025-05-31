@@ -1,73 +1,84 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:payment/models/bank.dart';
-import 'package:payment/pages/payment_bank_page.dart';
+import 'package:payment/models/cstore.dart';
+import 'package:payment/pages/payment_cstore_page.dart';
 import 'package:payment/services/midtrans_service.dart';
 
-class BankPage extends StatefulWidget {
+class CstorePage extends StatefulWidget {
+  const CstorePage({super.key});
+
   @override
-  _BankPageState createState() => _BankPageState();
+  State<CstorePage> createState() => _CstorePageState();
 }
 
-class _BankPageState extends State<BankPage> {
+class _CstorePageState extends State<CstorePage> {
   final MidtransService midtransService = MidtransService();
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final totalController = TextEditingController();
-  final bankTransferController = TextEditingController();
-  
+  final storeController = TextEditingController();
+  final messageController = TextEditingController();
+
+  final Map<String, String> storeOptions = { //option dropdown| sama seperti (select| option) di html
+    'alfamart': 'Alfamaret',
+    'indomaret': 'Indomaret',
+  };
+
   void _createPayment(BuildContext context)async{
-    if(nameController.text.isNotEmpty && emailController.text.isNotEmpty && totalController.text.isNotEmpty && bankTransferController.text.isNotEmpty){
-      showDialog(
+    if(nameController.text.isNotEmpty && emailController.text.isNotEmpty && totalController.text.isNotEmpty && storeController.text.isNotEmpty){
+        showDialog(
         context: context, 
         barrierDismissible: false,
         builder: (context) => const Center(child: CircularProgressIndicator(),));
+      
+        final response = await midtransService.paymentCstore(nameController.text, emailController.text, int.parse(totalController.text), storeController.text, messageController.text);
+        Navigator.of(context, rootNavigator: true).pop();
+        if(response['success'] == true){
+          final data = response['data'];
 
-      final response = await midtransService.paymentBank(nameController.text, emailController.text, int.parse(totalController.text), bankTransferController.text);
-      Navigator.of(context, rootNavigator: true).pop();
-      if(response['success'] == true){
-        final data = response['data'];
-        final paymentBank =  Bank(
-          orderID: data['order_id'], 
-          bankPayment: data['va_numbers'][0]['bank'], //menggunakn [0] karena berada dlm indexs 0
-          vaNumber: int.parse(data['va_numbers'][0]['va_number']), //dikarenakan hasil json ada tanda '' maka flutter menganggap nilai String jdi harus menggunakan int.parse
-          total: data['gross_amount'], 
-          waktuTransaksi: DateTime.parse(data['transaction_time']), 
-          Expired: DateTime.parse(data['expiry_time']),
-          );
-        AwesomeDialog(
-          context: context,
-          animType: AnimType.scale,
-          dialogType: DialogType.success,
-          dismissOnTouchOutside: false,
-          title: 'Sukses',
-          desc: response['message'],
-          btnOkOnPress: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentBankPage(bank: paymentBank)));
-          },
-        ).show();
-      }else{
-        AwesomeDialog(
-          context: context,
-          animType: AnimType.scale,
-          dialogType: DialogType.error,
-          title: 'Error',
-          desc: response['message'],
-          btnOkOnPress: (){},
-        ).show();
-      }
+          // final paymentCstore = Cstore(
+          //   orderID: data['order_id'],
+          //   store: data['store'],
+          //   paymentCode: data['payment_code'],
+          //   total: data['gross_amount'],
+          //   waktuTransaksi: data['transaction_time'],
+          //   expired: data['expiry_time'],
+          // );
+          
+          AwesomeDialog(
+            context: context,
+            animType: AnimType.scale,
+            dialogType: DialogType.success,
+            dismissOnTouchOutside: false,
+            title: 'Sukses',
+            desc: response['message'],
+            btnOkOnPress: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return PaymentCstorePage(cstore: data);
+              }));
+            },
+          ).show();
+        }else{
+          AwesomeDialog(
+            context: context,
+            animType: AnimType.scale,
+            dialogType: DialogType.error,
+            title: 'Error',
+            desc: response['message'],
+            btnOkOnPress: (){},
+          ).show();
+        }
     }else{
       AwesomeDialog(
-          context: context,
-          animType: AnimType.scale,
-          dialogType: DialogType.error,
-          title: 'Error',
-          desc: 'Mohon isi semua fieldnya',
-          btnOkOnPress: (){},
-        ).show();
+        context: context,
+        animType: AnimType.scale,
+        dialogType: DialogType.error,
+        title: 'Error',
+        desc: 'Mohon isi semua fieldnya',
+        btnOkOnPress: (){},
+      ).show();
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +89,7 @@ class _BankPageState extends State<BankPage> {
         elevation: 0,
         backgroundColor: const Color(0xFF00BF6D),
         foregroundColor: Colors.white,
-        title: const Text("Data Pembayaran"),
+        title: const Text("Data Pembeli"),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -136,22 +147,9 @@ class _BankPageState extends State<BankPage> {
                     ),
                   ),
                   UserInfoEditField(
-                    text: "Bank",
-                    child: DropdownButtonFormField<String>(
-                      value: bankTransferController.text.isNotEmpty
-                          ? bankTransferController.text
-                          : null,
-                      items: ['bca', 'bri','bni','cimb','permata'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          bankTransferController.text = newValue!;
-                        });
-                      },
+                    text: "Pesan",
+                    child: TextFormField(
+                      controller: messageController,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: const Color(0xFF00BF6D).withOpacity(0.05),
@@ -162,9 +160,39 @@ class _BankPageState extends State<BankPage> {
                           borderRadius: BorderRadius.all(Radius.circular(50)),
                         ),
                       ),
-                      hint: const Text("Pilih Bank"),
                     ),
                   ),
+                  UserInfoEditField(
+                  text: "Store",
+                  child: DropdownButtonFormField<String>(
+                    value: storeController.text.isNotEmpty
+                        ? storeController.text
+                        : null,
+                    items: storeOptions.entries.map((entry) {
+                      return DropdownMenuItem<String>(
+                        value: entry.key,
+                        child: Text(entry.value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        storeController.text = newValue!;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFF00BF6D).withOpacity(0.05),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16.0 * 1.5, vertical: 16.0),
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.all(Radius.circular(50)),
+                      ),
+                    ),
+                    hint: const Text("Pilih Store"),
+                  ),
+                ),
+
                 ],
               ),
             ),

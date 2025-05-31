@@ -1,34 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
-import 'package:payment/models/bank.dart';
+import 'package:payment/models/cstore.dart';
 
-class PaymentBankPage extends StatefulWidget {
-  PaymentBankPage({required this.bank});
-  Bank bank;
+class PaymentCstorePage extends StatefulWidget {
+  PaymentCstorePage({required this.cstore});
+  final Map<String, dynamic> cstore;
 
   @override
-  State<PaymentBankPage> createState() => _PaymentBankPageState();
+  State<PaymentCstorePage> createState() => _PaymentCstorePageState();
 }
 
-class _PaymentBankPageState extends State<PaymentBankPage> {
+class _PaymentCstorePageState extends State<PaymentCstorePage> {
   late TextEditingController orderIDController;
-  late TextEditingController vaNumberController;
-  late TextEditingController bankPaymentController;
+  late TextEditingController storeController;
+  late TextEditingController paymentCodeController;
   late TextEditingController totalController;
   late TextEditingController waktuTransaksiController;
-  late TextEditingController expireController;
-  final formatter = DateFormat('dd MMM yyyy HH:mm'); //menyimpan format hari, blulan, tahun, jam, dan menit di variabel ini
+  late TextEditingController expiredController;
 
   @override
   void initState() {
-    orderIDController = TextEditingController(text: widget.bank.orderID);
-    bankPaymentController = TextEditingController(text: widget.bank.bankPayment);
-    vaNumberController = TextEditingController(text: widget.bank.vaNumber.toString());
-    totalController = TextEditingController(text: widget.bank.total.toString());
-    waktuTransaksiController = TextEditingController(text: formatter.format(widget.bank.waktuTransaksi)); //isi widgetnya di format agar terformat seperti tanggal| bisa juga seperti ini "DateFormat().format(widget.bank.waktuTransaksi)"
-    expireController = TextEditingController(text: formatter.format(widget.bank.Expired));
     super.initState();
+    orderIDController = TextEditingController(text: widget.cstore['order_id']);
+    storeController = TextEditingController(text: widget.cstore['store']);
+    paymentCodeController = TextEditingController(text: widget.cstore['payment_code']);
+    totalController = TextEditingController(text: widget.cstore['gross_amount']);
+    waktuTransaksiController = TextEditingController(text: widget.cstore['transaction_time']);
+    expiredController = TextEditingController(text: widget.cstore['expiry_time']);
   }
 
   @override
@@ -40,7 +38,7 @@ class _PaymentBankPageState extends State<PaymentBankPage> {
         elevation: 0,
         backgroundColor: const Color(0xFF00BF6D),
         foregroundColor: Colors.white,
-        title: const Text("Payment"),
+        title: const Text("Pembayaran Cstore"),
       ),
       body: SafeArea(
         child: SizedBox(
@@ -52,7 +50,7 @@ class _PaymentBankPageState extends State<PaymentBankPage> {
                 children: [
                   const SizedBox(height: 16),
                   const Text(
-                    "Data Payment Bank",
+                    "Data Pembayaran Melalui Cstore",
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 24,
@@ -62,12 +60,12 @@ class _PaymentBankPageState extends State<PaymentBankPage> {
                   // const SizedBox(height: 16),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                   SignUpForm(
-                    order: orderIDController,
-                    bankPayment: bankPaymentController,
-                    vaNumber: vaNumberController,
+                    orderId: orderIDController,
+                    cstore: storeController,
+                    paymentCode: paymentCodeController,
                     total: totalController,
-                    waktu: waktuTransaksiController,
-                    expire: expireController,
+                    transaksi: waktuTransaksiController,
+                    expired: expiredController,
                   ),
                 ],
               ),
@@ -85,8 +83,8 @@ const authOutlineInputBorder = OutlineInputBorder(
 );
 
 class SignUpForm extends StatelessWidget {
-  SignUpForm({required this.order, required this.bankPayment, required this.total, required this.vaNumber, required this.waktu, required this.expire});
-  final TextEditingController order, bankPayment, vaNumber, total, waktu, expire;
+  SignUpForm({required this.orderId, required this.cstore, required this.paymentCode, required this.total, required this.transaksi, required this.expired});
+  final TextEditingController orderId, cstore, paymentCode, total, transaksi, expired;
 
   @override
   Widget build(BuildContext context) {
@@ -94,11 +92,12 @@ class SignUpForm extends StatelessWidget {
       child: Column(
         children: [
           TextFormField(
-            controller: order,
-            textInputAction: TextInputAction.next,
             readOnly: true,
+            controller: orderId,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
-                labelText: "ORDER-ID",
+                hintText: "Order ID",
+                labelText: "ORDER",
                 floatingLabelBehavior: FloatingLabelBehavior.always,
                 hintStyle: const TextStyle(color: Color(0xFF757575)),
                 contentPadding: const EdgeInsets.symmetric(
@@ -116,11 +115,12 @@ class SignUpForm extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: TextFormField(
-              controller: bankPayment,
-              textInputAction: TextInputAction.next,
               readOnly: true,
+              controller: cstore,
+              textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                  labelText: "Penyedia Bank",
+                  hintText: "Cstore",
+                  labelText: "Store",
                   floatingLabelBehavior: FloatingLabelBehavior.always,
                   hintStyle: const TextStyle(color: Color(0xFF757575)),
                   contentPadding: const EdgeInsets.symmetric(
@@ -137,10 +137,11 @@ class SignUpForm extends StatelessWidget {
             ),
           ),
           TextFormField(
-            controller: vaNumber,
             readOnly: true,
+            controller: paymentCode,
             decoration: InputDecoration(
-                labelText: "Nomor Pembayaran",
+                hintText: "Kode Pembayaran",
+                labelText: "Kode",
                 floatingLabelBehavior: FloatingLabelBehavior.always,
                 hintStyle: const TextStyle(color: Color(0xFF757575)),
                 contentPadding: const EdgeInsets.symmetric(
@@ -155,12 +156,15 @@ class SignUpForm extends StatelessWidget {
                 focusedBorder: authOutlineInputBorder.copyWith(
                     borderSide: const BorderSide(color: Color(0xFFFF7643)))),
           ),
-          const SizedBox(height: 24),
+          SizedBox(
+            height: 24,
+          ),
           TextFormField(
+            readOnly: true,
             controller: total,
-            readOnly: true,
             decoration: InputDecoration(
-                labelText: "Total Pembayaran",
+                hintText: "Total pembayaran",
+                labelText: "Total",
                 floatingLabelBehavior: FloatingLabelBehavior.always,
                 hintStyle: const TextStyle(color: Color(0xFF757575)),
                 contentPadding: const EdgeInsets.symmetric(
@@ -175,12 +179,15 @@ class SignUpForm extends StatelessWidget {
                 focusedBorder: authOutlineInputBorder.copyWith(
                     borderSide: const BorderSide(color: Color(0xFFFF7643)))),
           ),
-          const SizedBox(height: 24),
+          SizedBox(
+            height: 24,
+          ),
           TextFormField(
-            controller: waktu,
             readOnly: true,
+            controller: transaksi,
             decoration: InputDecoration(
-                labelText: "Waktu Pembayaran",
+                hintText: "Waktu transaksi",
+                labelText: "Kode",
                 floatingLabelBehavior: FloatingLabelBehavior.always,
                 hintStyle: const TextStyle(color: Color(0xFF757575)),
                 contentPadding: const EdgeInsets.symmetric(
@@ -195,12 +202,15 @@ class SignUpForm extends StatelessWidget {
                 focusedBorder: authOutlineInputBorder.copyWith(
                     borderSide: const BorderSide(color: Color(0xFFFF7643)))),
           ),
-          const SizedBox(height: 24),
+          SizedBox(
+            height: 24,
+          ),
           TextFormField(
-            controller: expire,
             readOnly: true,
+            controller: expired,
             decoration: InputDecoration(
-                labelText: "Expire Pembayaran",
+                hintText: "Expired",
+                labelText: "Expired",
                 floatingLabelBehavior: FloatingLabelBehavior.always,
                 hintStyle: const TextStyle(color: Color(0xFF757575)),
                 contentPadding: const EdgeInsets.symmetric(
