@@ -165,4 +165,16 @@ class PaymentApiController extends Controller
             return response()->json(['message' => $e->getMessage(), 'success' => false, 'data' => null]);
         }
     }
+
+    public function cekStatus(Request $request){
+        $orderID = $request->order_id;
+        try{
+            $serverKey = config('midtrans.server_key');
+            $response = Http::withBasicAuth($serverKey, '')->get("https://api.sandbox.midtrans.com/v2/{$orderID}/status"); //jika ingin menggunkannya lansung url harus menggunakan tanda "" |bisa juga menggunakan ini get('https://api.sandbox.midtrans.com/v2/'.$orderID.'/status');
+            $data = $response->json();
+            return response()->json(['message' => 'Pembayaran berhasil ditemukan', 'success' => true, 'data' => $data]);
+        }catch(Exception $e){
+            return response()->json(['message' => $e->getMessage(), 'success' => false, 'data' => null]);
+        }
+    }
 }

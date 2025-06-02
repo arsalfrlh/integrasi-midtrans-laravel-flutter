@@ -38,4 +38,11 @@ class MidtransService {
     body: json.encode({'name': name, 'email': email, 'gross_amount': total, 'payment_type': 'cstore', 'store': store, 'message': message}));
     return json.decode(response.body);
   }
+
+  Future<Map<String, dynamic>> cekPaymentStatus(String orderID)async{
+    final response = await http.post(Uri.parse('$baseUrl/payment/status'),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({'order_id': orderID}));
+    return json.decode(response.body);
+  }
 }

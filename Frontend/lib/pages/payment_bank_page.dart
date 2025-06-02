@@ -1,7 +1,9 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:payment/models/bank.dart';
+import 'package:payment/services/midtrans_service.dart';
 
 class PaymentBankPage extends StatefulWidget {
   PaymentBankPage({required this.bank});
@@ -12,6 +14,7 @@ class PaymentBankPage extends StatefulWidget {
 }
 
 class _PaymentBankPageState extends State<PaymentBankPage> {
+  final MidtransService midtransService = MidtransService();
   late TextEditingController orderIDController;
   late TextEditingController vaNumberController;
   late TextEditingController bankPaymentController;
@@ -29,6 +32,83 @@ class _PaymentBankPageState extends State<PaymentBankPage> {
     waktuTransaksiController = TextEditingController(text: formatter.format(widget.bank.waktuTransaksi)); //isi widgetnya di format agar terformat seperti tanggal| bisa juga seperti ini "DateFormat().format(widget.bank.waktuTransaksi)"
     expireController = TextEditingController(text: formatter.format(widget.bank.Expired));
     super.initState();
+  }
+
+  void _cekStatus(BuildContext context, orderID)async{
+    showDialog(
+      context: context, 
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator(),));
+    final response = await midtransService.cekPaymentStatus(orderID);
+    Navigator.of(context, rootNavigator: true).pop();
+    if(response['success'] == true){
+      if(response['data']['transaction_status'] == 'settlement'){
+          AwesomeDialog(
+          context: context,
+          dialogType: DialogType.success,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Status: ${response['data']['transaction_status']}',
+          desc: response['message'],
+          btnOkOnPress: (){},
+        ).show();
+      }else if(response['data']['transaction_status'] == 'cancel'){
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Status: ${response['data']['transaction_status']}',
+          desc: response['message'],
+          btnOkOnPress: (){},
+          btnOkColor: Colors.red,
+        ).show();
+      }else if(response['data']['transaction_status'] == 'pending'){
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.info,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Status: ${response['data']['transaction_status']}',
+          desc: response['message'],
+          btnOkOnPress: (){},
+          btnOkColor: Colors.blue,
+        ).show();
+      }else if(response['data']['transaction_status'] == 'expire'){
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Status: ${response['data']['transaction_status']}',
+          desc: response['message'],
+          btnOkOnPress: (){},
+          btnOkColor: Colors.red,
+        ).show();
+      }else{
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Error',
+          desc: response['data']['status_message'],
+          btnOkOnPress: (){},
+          btnOkColor: Colors.red,
+        ).show();
+      }
+    }else{
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.error,
+        animType: AnimType.scale,
+        dismissOnTouchOutside: false,
+        title: 'Error',
+        desc: response['message'],
+        btnOkOnPress: (){},
+        btnOkColor: Colors.red,
+      ).show();
+    }
   }
 
   @override
@@ -68,6 +148,7 @@ class _PaymentBankPageState extends State<PaymentBankPage> {
                     total: totalController,
                     waktu: waktuTransaksiController,
                     expire: expireController,
+                    cekStatus: () => _cekStatus(context, widget.bank.orderID),
                   ),
                 ],
               ),
@@ -85,8 +166,9 @@ const authOutlineInputBorder = OutlineInputBorder(
 );
 
 class SignUpForm extends StatelessWidget {
-  SignUpForm({required this.order, required this.bankPayment, required this.total, required this.vaNumber, required this.waktu, required this.expire});
+  SignUpForm({required this.order, required this.bankPayment, required this.total, required this.vaNumber, required this.waktu, required this.expire, required this.cekStatus});
   final TextEditingController order, bankPayment, vaNumber, total, waktu, expire;
+  final VoidCallback cekStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -215,6 +297,20 @@ class SignUpForm extends StatelessWidget {
                 focusedBorder: authOutlineInputBorder.copyWith(
                     borderSide: const BorderSide(color: Color(0xFFFF7643)))),
           ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: cekStatus,
+            style: ElevatedButton.styleFrom(
+              elevation: 0,
+              backgroundColor: const Color(0xFFFF7643),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 48),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+              ),
+            ),
+            child: const Text("Cek Status"),
+          )
         ],
       ),
     );

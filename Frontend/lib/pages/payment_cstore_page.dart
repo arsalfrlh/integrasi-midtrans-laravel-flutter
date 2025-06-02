@@ -1,6 +1,8 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:payment/models/cstore.dart';
+import 'package:payment/services/midtrans_service.dart';
 
 class PaymentCstorePage extends StatefulWidget {
   PaymentCstorePage({required this.cstore});
@@ -17,6 +19,7 @@ class _PaymentCstorePageState extends State<PaymentCstorePage> {
   late TextEditingController totalController;
   late TextEditingController waktuTransaksiController;
   late TextEditingController expiredController;
+  final MidtransService midtransService = MidtransService();
 
   @override
   void initState() {
@@ -27,6 +30,83 @@ class _PaymentCstorePageState extends State<PaymentCstorePage> {
     totalController = TextEditingController(text: widget.cstore['gross_amount']);
     waktuTransaksiController = TextEditingController(text: widget.cstore['transaction_time']);
     expiredController = TextEditingController(text: widget.cstore['expiry_time']);
+  }
+
+  void _cekStatus(BuildContext context, orderID)async{
+    showDialog(
+      context: context, 
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator(),));
+    final response = await midtransService.cekPaymentStatus(orderID);
+    Navigator.of(context, rootNavigator: true).pop();
+    if(response['success'] == true){
+      if(response['data']['transaction_status'] == 'settlement'){
+          AwesomeDialog(
+          context: context,
+          dialogType: DialogType.success,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Status: ${response['data']['transaction_status']}',
+          desc: response['message'],
+          btnOkOnPress: (){},
+        ).show();
+      }else if(response['data']['transaction_status'] == 'cancel'){
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Status: ${response['data']['transaction_status']}',
+          desc: response['message'],
+          btnOkOnPress: (){},
+          btnOkColor: Colors.red,
+        ).show();
+      }else if(response['data']['transaction_status'] == 'pending'){
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.info,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Status: ${response['data']['transaction_status']}',
+          desc: response['message'],
+          btnOkOnPress: (){},
+          btnOkColor: Colors.blue,
+        ).show();
+      }else if(response['data']['transaction_status'] == 'expire'){
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Status: ${response['data']['transaction_status']}',
+          desc: response['message'],
+          btnOkOnPress: (){},
+          btnOkColor: Colors.red,
+        ).show();
+      }else{
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          dismissOnTouchOutside: false,
+          title: 'Error',
+          desc: response['data']['status_message'],
+          btnOkOnPress: (){},
+          btnOkColor: Colors.red,
+        ).show();
+      }
+    }else{
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.error,
+        animType: AnimType.scale,
+        dismissOnTouchOutside: false,
+        title: 'Error',
+        desc: response['message'],
+        btnOkOnPress: (){},
+        btnOkColor: Colors.red,
+      ).show();
+    }
   }
 
   @override
@@ -66,6 +146,7 @@ class _PaymentCstorePageState extends State<PaymentCstorePage> {
                     total: totalController,
                     transaksi: waktuTransaksiController,
                     expired: expiredController,
+                    cekStatus: () => _cekStatus(context, widget.cstore['order_id']),
                   ),
                 ],
               ),
@@ -83,8 +164,9 @@ const authOutlineInputBorder = OutlineInputBorder(
 );
 
 class SignUpForm extends StatelessWidget {
-  SignUpForm({required this.orderId, required this.cstore, required this.paymentCode, required this.total, required this.transaksi, required this.expired});
+  SignUpForm({required this.orderId, required this.cstore, required this.paymentCode, required this.total, required this.transaksi, required this.expired, required this.cekStatus});
   final TextEditingController orderId, cstore, paymentCode, total, transaksi, expired;
+  final VoidCallback cekStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -225,6 +307,20 @@ class SignUpForm extends StatelessWidget {
                 focusedBorder: authOutlineInputBorder.copyWith(
                     borderSide: const BorderSide(color: Color(0xFFFF7643)))),
           ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: cekStatus,
+            style: ElevatedButton.styleFrom(
+              elevation: 0,
+              backgroundColor: const Color(0xFFFF7643),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 48),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+              ),
+            ),
+            child: const Text("Cek Status"),
+          )
         ],
       ),
     );
