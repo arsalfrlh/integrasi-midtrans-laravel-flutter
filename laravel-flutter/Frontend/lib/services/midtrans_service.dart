@@ -45,4 +45,19 @@ class MidtransService {
     body: json.encode({'order_id': orderID}));
     return json.decode(response.body);
   }
+
+  Future<Map<String, dynamic>> createPayment(String name, String email, String total)async{
+    final respone = await http.post(Uri.parse('$baseUrl/payment'),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      "name": name,
+      "email": email,
+      "total": total,
+    }));
+    if(respone.statusCode == 200){
+      return json.decode(respone.body);
+    }else{
+      throw Exception("data gagal dikirim");
+    }
+  }
 }

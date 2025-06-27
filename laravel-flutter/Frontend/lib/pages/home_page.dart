@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:payment/pages/bank_page.dart';
 import 'package:payment/pages/cstore_page.dart';
 import 'package:payment/pages/gopay_page.dart';
+import 'package:payment/pages/midtrans_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -60,6 +61,18 @@ class _HomePageState extends State<HomePage> {
                     backgroundColor: const Color(0xFF00BF6D),
                     foregroundColor: Colors.white,),
                 child: const Text("Payment Cstore"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => MidtransPage()));
+                },
+                style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    minimumSize: const Size(double.infinity, 48),
+                    shape: const StadiumBorder(),
+                    backgroundColor: const Color(0xFF00BF6D),
+                    foregroundColor: Colors.white,),
+                child: const Text("Payment SnapToken"),
               ),
               const Spacer(flex: 2),
             ],
